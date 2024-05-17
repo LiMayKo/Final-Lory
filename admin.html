@@ -111,29 +111,26 @@
           <div class="row mt-4">
             <div class="col-lg-5 mb-lg-0 mb-4">
               <div class="card z-index-2">
+                <div class="card-header pb-0">
+                  <h6>Purchase/Sales overview (Monthly)</h6>
+                </div>
                 <div class="card-body p-3">
                   <div class="bg-gradient-dark border-radius-lg py-3 pe-1 mb-3">
                     <div class="chart">
-                      <canvas id="chart-bars" class="chart-canvas" height="170"></canvas>
+                      <canvas id="chart-bars" class="chart-canvas" style="min-height: 170px; max-height: 170px;"></canvas>
                     </div>
                   </div>
-
-
                 </div>
               </div>
             </div>
             <div class="col-lg-7">
               <div class="card z-index-2">
                 <div class="card-header pb-0">
-                  <h6>Sales overview</h6>
-                  <p class="text-sm">
-                    <i class="fa fa-arrow-up text-success"></i>
-                    <span class="font-weight-bold">4% more</span> in 2024
-                  </p>
+                  <h6>Purchase/Sales overview (Daily)</h6>
                 </div>
                 <div class="card-body p-3">
                   <div class="chart">
-                    <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
+                    <canvas id="chart-line" class="chart-canvas" style="min-height: 170px; max-height: 170px;"></canvas>
                   </div>
                 </div>
               </div>
@@ -692,7 +689,7 @@
   <!-- Firebase Auth Script -->
   <script type="module" src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js"></script>
   <script src="js/adminNav.js"></script>
-
+  <script src="assets/js/plugins/chartjs.min.js"></script>
   <script type="module">
     // Import Firebase authentication functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
@@ -714,6 +711,172 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const firestore = getFirestore(app);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const purchaseDataBar = {};
+      const salesDataBar = {};
+      const purchaseDataLine = {};
+      const salesDataLine = {};
+      const labelsBar = []; // For months
+      const labelsLine = []; // For days
+  
+      try {
+          // Fetch purchase data
+          const purchasesQuerySnapshot = await getDocs(collection(firestore, 'purchases'));
+          purchasesQuerySnapshot.forEach((doc) => {
+              const data = doc.data();
+              if (data.datetime && data.datetime.seconds) {
+                  const month = new Date(data.datetime.seconds * 1000).toLocaleString('default', { month: 'long' });
+                  const day = new Date(data.datetime.seconds * 1000).getDate();
+                  const label = `${month} ${day}`;
+  
+                  if (!purchaseDataBar[month]) {
+                      purchaseDataBar[month] = 0;
+                  }
+                  purchaseDataBar[month] += data.amount;
+  
+                  if (!purchaseDataLine[label]) {
+                      purchaseDataLine[label] = 0;
+                  }
+                  purchaseDataLine[label] += data.amount;
+  
+                  if (!labelsBar.includes(month)) {
+                      labelsBar.push(month);
+                  }
+  
+                  if (!labelsLine.includes(label)) {
+                      labelsLine.push(label);
+                  }
+              } else {
+                  console.warn('Missing datetime for purchase document:', doc.id);
+              }
+          });
+  
+          // Fetch sales data
+          const salesDocId = 'QiQgHzK5ejJONcqySnGg';
+          const salesDocRef = doc(firestore, 'orders', salesDocId);
+          const salesDocSnap = await getDoc(salesDocRef);
+  
+          if (salesDocSnap.exists()) {
+              const queueCollectionRef = collection(firestore, 'orders', salesDocId, 'queue');
+              const queueQuerySnapshot = await getDocs(queueCollectionRef);
+  
+              queueQuerySnapshot.forEach((queueDoc) => {
+                  const queueData = queueDoc.data();
+                  if (queueData.date && queueData.date.seconds) {
+                      const date = new Date(queueData.date.seconds * 1000);
+                      const day = date.getDate();
+                      const month = new Date(queueData.date.seconds * 1000).toLocaleString('default', { month: 'long' });
+                      const label = `${month} ${day}`;
+  
+                      if (!salesDataBar[month]) {
+                          salesDataBar[month] = 0;
+                      }
+                      if (!salesDataLine[label]) {
+                          salesDataLine[label] = 0;
+                      }
+  
+                      if (queueData.status === 'paid') {
+                          const total = parseFloat(queueData.total);
+                          salesDataBar[month] += total;
+                          salesDataLine[label] += total;
+                      }
+  
+                      if (!labelsBar.includes(month)) {
+                          labelsBar.push(month);
+                      }
+  
+                      if (!labelsLine.includes(label)) {
+                          labelsLine.push(label);
+                      }
+                  } else {
+                      console.warn('Missing date for queue document:', queueDoc.id);
+                  }
+              });
+          }
+  
+          // Convert aggregated data to arrays for Chart.js
+          const purchaseDataArrayBar = labelsBar.map(month => purchaseDataBar[month] || 0);
+          const salesDataArrayBar = labelsBar.map(month => salesDataBar[month] || 0);
+  
+          const purchaseDataArrayLine = labelsLine.map(day => purchaseDataLine[day] || 0);
+          const salesDataArrayLine = labelsLine.map(day => salesDataLine[day] || 0);
+  
+          // Reverse the line chart data arrays and labels to display from first day to last day
+  
+          console.log('Purchase Data for Bar Chart:', purchaseDataArrayBar);
+          console.log('Sales Data for Bar Chart:', salesDataArrayBar);
+          console.log('Purchase Data for Line Chart:', purchaseDataArrayLine);
+          console.log('Sales Data for Line Chart:', salesDataArrayLine);
+  
+          // Bar Chart
+          const barCtx = document.getElementById('chart-bars').getContext('2d');
+          const barChart = new Chart(barCtx, {
+              type: 'bar',
+              data: {
+                  labels: labelsBar,
+                  datasets: [
+                      {
+                          label: 'Purchases',
+                          data: purchaseDataArrayBar,
+                          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                          borderColor: 'rgba(75, 192, 192, 1)',
+                          borderWidth: 1
+                      },
+                      {
+                          label: 'Sales',
+                          data: salesDataArrayBar,
+                          backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                          borderColor: 'rgba(153, 102, 255, 1)',
+                          borderWidth: 1
+                      }
+                  ]
+              },
+              options: {
+                  scales: {
+                      y: {
+                          beginAtZero: true
+                      }
+                  }
+              }
+          });
+  
+          // Line Chart
+          const lineCtx = document.getElementById('chart-line').getContext('2d');
+          const lineChart = new Chart(lineCtx, {
+              type: 'line',
+              data: {
+                  labels: labelsLine,
+                  datasets: [
+                      {
+                          label: 'Purchases',
+                          data: purchaseDataArrayLine,
+                          fill: false,
+                          borderColor: 'rgba(75, 192, 192, 1)',
+                          borderWidth: 2
+                      },
+                      {
+                          label: 'Sales',
+                          data: salesDataArrayLine,
+                          fill: false,
+                          borderColor: 'rgba(153, 102, 255, 1)',
+                          borderWidth: 2
+                      }
+                  ]
+              },
+              options: {
+                  scales: {
+                      y: {
+                          beginAtZero: true
+                      }
+                  }
+              }
+          });
+      } catch (error) {
+          console.error("Error fetching data from Firestore:", error);
+      }
+  });
+  
 
     // Function to display existing employees in the table
     const displayEmployees = async () => {
@@ -1047,6 +1210,7 @@
         console.error("Error deleting employee:", error);
       }
     };
+
     window.onload = () => {
       displayEmployees();
       displayPurchaseOrder();
@@ -1149,9 +1313,9 @@
     });
   </script>
   <!--   Core JS Files   -->
-  <script src="assets/js/plugins/chartjs.min.js"></script>
   <script>
-    var ctx = document.getElementById("chart-bars").getContext("2d");
+
+    /*var ctx = document.getElementById("chart-bars").getContext("2d");
 
     new Chart(ctx, {
       type: "bar",
@@ -1318,7 +1482,7 @@
           },
         },
       },
-    });
+    }); */
   </script>
 </body>
 
