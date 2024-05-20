@@ -1087,51 +1087,47 @@
     const displaySalesReport = async () => {
       const salesReportTableBody = document.getElementById('sales-report-table-body');
       try {
-        // Retrieve existing employees from Firestore
-        const docId = 'QiQgHzK5ejJONcqySnGg';
-    
-        const docRef = doc(firestore, 'orders', docId);
-        const docSnap = await getDoc(docRef);
+        // Retrieve sales documents from Firestore
+        const salesCollectionRef = collection(firestore, 'sales');
+        const querySnapshot = await getDocs(salesCollectionRef);
     
         // Clear existing table rows
         salesReportTableBody.innerHTML = '';
     
-        if (docSnap.exists()) {
-          const queueCollectionRef = collection(firestore, 'orders', docId, 'queue');
-          const queueQuerySnapshot = await getDocs(queueCollectionRef);
+        querySnapshot.forEach(async (doc) => {
+          const salesListing = doc.data();
+          const salesListingStatus = salesListing.status;
+          const salesDateTime = salesListing.date.toDate();
+          const salesTotal = salesListing.total;
+          const date = salesDateTime.toDateString();
+          const time = salesDateTime.toLocaleTimeString('en-US', { timeZone: 'Asia/Hong_Kong' });
     
-          queueQuerySnapshot.forEach((queueDoc) => {
-            const queueItem = queueDoc.data();
-            const datetime = queueItem.date.toDate();
-            const date = datetime.toDateString();
-            const time = datetime.toLocaleTimeString('en-US', { timeZone: 'Asia/Hong_Kong' })
+          if (salesListingStatus === 'bill-out') {
+            const row = `
+              <tr id="${doc.id}" class="sales-listing-row">
+                <td>${date}</td>
+                <td>${time}</td>
+                <td>${salesTotal}</td>
+                <td>
+                  <button type="button" class="btn btn-primary details-btn" data-order-id="${doc.id}">Details</button>
+                </td>
+              </tr>
+            `;
+            salesReportTableBody.innerHTML += row;
+          }
+        });
     
-            if (queueItem.status == 'paid') {
-              const row = `
-                <tr id="${queueDoc.id}" class="sales-listing-row">
-                  <td>${date}</td>
-                  <td>${time}</td>
-                  <td>${queueItem.total}</td>
-                  <td>
-                    <button type="button" class="btn btn-primary details-btn" data-order-id="${queueDoc.id}">Details</button>
-                  </td>
-                </tr>
-              `;
-              salesReportTableBody.innerHTML += row;
-            }
+        // Attach event listeners to the details buttons
+        const detailsButtons = document.querySelectorAll('.details-btn');
+        detailsButtons.forEach((button) => {
+          button.addEventListener('click', async () => {
+            const orderId = button.dataset.orderId;
+            console.log(orderId);
+            await displayDetails(orderId);
           });
-    
-          // Add event listeners to details buttons
-          const detailsButtons = document.querySelectorAll('.details-btn');
-          detailsButtons.forEach((button) => {
-            button.addEventListener('click', async () => {
-              const orderId = button.dataset.orderId;
-              await displayDetails(orderId);
-            });
-          });
-        }
+        });
       } catch (error) {
-        console.error("Error displaying order listing:", error);
+        console.error("Error displaying sales listing:", error);
       }
     };
 
@@ -1159,24 +1155,17 @@
       try {
         // Clear any existing details
         const detailsModalBody = document.getElementById('details-modal-body');
-        const docId = 'QiQgHzK5ejJONcqySnGg';
         detailsModalBody.innerHTML = '';
     
-        // Retrieve queue subcollection for the selected order
-        const queueCollectionRef = collection(firestore, 'orders', docId, 'queue');
-        const queueQuerySnapshot = await getDocs(queueCollectionRef);
+        // Retrieve the order document to check its status
+        const orderDocRef = doc(firestore, 'sales', orderId);
+        const orderDocSnap = await getDoc(orderDocRef);
     
-        console.log("Queue Query Snapshot:", queueQuerySnapshot.docs);
-    
-        queueQuerySnapshot.forEach(async (queueDoc) => {
-          console.log("Inside forEach loop");
-          const queueData = queueDoc.data();
-          console.log("Queue Data:", queueData);
-          if (queueData.status === 'paid') {
-            console.log('Queue Document ID:', queueDoc.id);
-    
-            // Retrieve details subcollection for this queue document
-            const detailsCollectionRef = collection(firestore, 'orders', docId, 'queue', orderId, 'details');
+        if (orderDocSnap.exists()) {
+          const orderData = orderDocSnap.data();
+          if (orderData.status === 'bill-out') {
+            // Retrieve details subcollection for this order
+            const detailsCollectionRef = collection(firestore, 'sales', orderId, 'details');
             const detailsQuerySnapshot = await getDocs(detailsCollectionRef);
     
             console.log('Details Query Snapshot:', detailsQuerySnapshot.docs);
@@ -1197,11 +1186,15 @@
               `;
               detailsModalBody.innerHTML += row;
             });
-          }
-        });
     
-        // Show the details modal
-        $('#detailsModal').modal('show');
+            // Show the details modal
+            $('#detailsModal').modal('show');
+          } else {
+            console.log('Order status is not "paid".');
+          }
+        } else {
+          console.log('No such document!');
+        }
       } catch (error) {
         console.error("Error displaying sales report details:", error);
       }
