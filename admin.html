@@ -355,16 +355,15 @@
               <div class="modal-content">
                 <div class="modal-header">
                   <h5 class="modal-title" id="confirmDeletePurchaseOrderModalLabel">Confirm Deletion</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                   Are you sure you want to delete this Purchase Order?
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-                  <button type="button" class="btn btn-danger" id="confirm-purchase-order-delete-btn">Yes, delete</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                  <button type="button" class="btn btn-danger" id="confirm-purchase-order-delete-btn">Yes,
+                    delete</button>
                 </div>
               </div>
             </div>
@@ -400,43 +399,6 @@
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="save-add-purchase-order-btn-modal">Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal for displaying employee details -->
-        <div class="modal fade" id="purchaseOrderDetailsModal" tabindex="-1" role="dialog"
-          aria-labelledby="purchaseOrderDetailsModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="purchaseOrderDetailsModalLabel">Purchase Order Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body" id="purchaseOrderDetailsBody">
-                <!-- Form for displaying and editing employee details -->
-                <form id="editPurchaseOrderForm">
-                  <div class="form-group">
-                    <label for="purchase-order-id">Purchase Order ID</label>
-                    <input type="text" class="form-control" id="purchase-order-id" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label for="purchase-order-datetime">Date and Time</label>
-                    <input type="text" class="form-control" id="purchase-order-datetime-view" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="purchase-order-amount">Amount</label>
-                    <input type="text" class="form-control" id="purchase-order-amount-view">
-                  </div>
-                  <div class="form-group">
-                    <label for="purchase-order-comment">Comment</label>
-                    <input type="text" class="form-control" id="purchase-order-comment-view" required>
-                  </div>
-                  <button type="button" class="btn btn-primary" id="save-edit-purchase-order-btn-view">Save</button>
-                </form>
               </div>
             </div>
           </div>
@@ -488,7 +450,8 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-                  <button type="button" class="btn btn-danger" id="confirm-order-listing-delete-btn">Yes, delete</button>
+                  <button type="button" class="btn btn-danger" id="confirm-order-listing-delete-btn">Yes,
+                    delete</button>
                 </div>
               </div>
             </div>
@@ -705,7 +668,7 @@
     // Import Firebase authentication functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc , Timestamp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, addDoc, getDocs, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { updateDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js"
 
@@ -764,13 +727,7 @@
         });
 
         // Fetch sales data
-        const salesDocId = 'QiQgHzK5ejJONcqySnGg';
-        const salesDocRef = doc(firestore, 'orders', salesDocId);
-        const salesDocSnap = await getDoc(salesDocRef);
-
-        if (salesDocSnap.exists()) {
-          const queueCollectionRef = collection(firestore, 'orders', salesDocId, 'queue');
-          const queueQuerySnapshot = await getDocs(queueCollectionRef);
+        const queueQuerySnapshot = await getDocs(collection(firestore, 'sales'));
 
           queueQuerySnapshot.forEach((queueDoc) => {
             const queueData = queueDoc.data();
@@ -787,7 +744,7 @@
                 salesDataLine[label] = 0;
               }
 
-              if (queueData.status === 'paid') {
+              if (queueData.status == 'bill-out') {
                 const total = parseFloat(queueData.total);
                 salesDataBar[month] += total;
                 salesDataLine[label] += total;
@@ -800,11 +757,9 @@
               if (!labelsLine.includes(label)) {
                 labelsLine.push(label);
               }
-            } else {
-              console.warn('Missing date for queue document:', queueDoc.id);
             }
           });
-        }
+
 
         // Convert aggregated data to arrays for Chart.js
         const purchaseDataArrayBar = labelsBar.map(month => purchaseDataBar[month] || 0);
@@ -988,7 +943,7 @@
         deleteButtons.forEach((button) => {
           button.addEventListener('click', async () => {
             const purchaseOrderId = button.parentElement.parentElement.id;
-            console.log('Clicked delete button for employee ID:', purchaseOrderId);
+            console.log('Clicked delete button for purchase order ID:', purchaseOrderId);
 
             // Show confirmation modal
             $('#confirmDeletePurchaseOrderModal').modal('show');
@@ -1045,36 +1000,36 @@
             orderListingTableBody.innerHTML += row;
           });
 
-          const deleteButtons = document.querySelectorAll('.purchase-order-delete-btn');
+          const deleteButtons = document.querySelectorAll('.order-details-delete-btn');
           deleteButtons.forEach((button) => {
-          button.addEventListener('click', async () => {
-            const orderDetailsId = button.parentElement.parentElement.id;
-            console.log('Clicked delete button for employee ID:', orderDetailsId);
+            button.addEventListener('click', async () => {
+              const orderDetailsId = button.parentElement.parentElement.id;
+              console.log('Clicked delete button for employee ID:', orderDetailsId);
 
-            // Show confirmation modal
-            $('#confirmOrderListingDeleteModal').modal('show');
+              // Show confirmation modal
+              $('#confirmOrderListingDeleteModal').modal('show');
 
-            // Attach event listener to confirm deletion
-            document.getElementById('confirm-order-listing-delete-btn').addEventListener('click', async () => {
-              // Delete employee only if confirmed
-              await deleteOrderDetails(purchaseOrderId);
-              // Close the confirmation modal
-              $('#confirmOrderListingDeleteModal').modal('hide');
+              // Attach event listener to confirm deletion
+              document.getElementById('confirm-order-listing-delete-btn').addEventListener('click', async () => {
+                // Delete employee only if confirmed
+                await deleteOrderDetails(doc.id, orderDetailsId);
+                // Close the confirmation modal
+                $('#confirmOrderListingDeleteModal').modal('hide');
+              });
             });
           });
-        });
 
-        const editButtons = document.querySelectorAll('.order-details-edit-btn');
-        editButtons.forEach((button) => {
-          button.addEventListener('click', async () => {
-            const orderDetailId = button.parentElement.parentElement.id;
-            console.log('Clicked edit button for employee ID:', orderDetailId);
+          const editButtons = document.querySelectorAll('.order-details-edit-btn');
+          editButtons.forEach((button) => {
+            button.addEventListener('click', async () => {
+              const orderDetailId = button.parentElement.parentElement.id;
+              console.log('Clicked edit button for employee ID:', orderDetailId);
 
-            // Retrieve employee details and open edit modal
-            await openEditModal(employeeId);
+              // Retrieve employee details and open edit modal
+              await openEditModal(doc.id, orderDetailId);
+            });
           });
-        });
-          
+
         });
 
       } catch (error) {
@@ -1120,10 +1075,10 @@
         // Retrieve sales documents from Firestore
         const salesCollectionRef = collection(firestore, 'sales');
         const querySnapshot = await getDocs(salesCollectionRef);
-    
+
         // Clear existing table rows
         salesReportTableBody.innerHTML = '';
-    
+
         querySnapshot.forEach(async (doc) => {
           const salesListing = doc.data();
           const salesListingStatus = salesListing.status;
@@ -1131,7 +1086,7 @@
           const salesTotal = salesListing.total;
           const date = salesDateTime.toDateString();
           const time = salesDateTime.toLocaleTimeString('en-US', { timeZone: 'Asia/Hong_Kong' });
-    
+
           if (salesListingStatus === 'bill-out') {
             const row = `
               <tr id="${doc.id}" class="sales-listing-row">
@@ -1146,7 +1101,7 @@
             salesReportTableBody.innerHTML += row;
           }
         });
-    
+
         // Attach event listeners to the details buttons
         const detailsButtons = document.querySelectorAll('.details-btn');
         detailsButtons.forEach((button) => {
@@ -1186,26 +1141,26 @@
         // Clear any existing details
         const detailsModalBody = document.getElementById('details-modal-body');
         detailsModalBody.innerHTML = '';
-    
+
         // Retrieve the order document to check its status
         const orderDocRef = doc(firestore, 'sales', orderId);
         const orderDocSnap = await getDoc(orderDocRef);
-    
+
         if (orderDocSnap.exists()) {
           const orderData = orderDocSnap.data();
           if (orderData.status === 'bill-out') {
             // Retrieve details subcollection for this order
             const detailsCollectionRef = collection(firestore, 'sales', orderId, 'details');
             const detailsQuerySnapshot = await getDocs(detailsCollectionRef);
-    
+
             console.log('Details Query Snapshot:', detailsQuerySnapshot.docs);
-    
+
             // Populate modal with details
             detailsQuerySnapshot.forEach((doc) => {
               const detailsData = doc.data();
               console.log(detailsData);
               const { dish, qty, total } = detailsData;
-    
+
               // Create a row for each detail item
               const row = `
                 <tr>
@@ -1216,7 +1171,7 @@
               `;
               detailsModalBody.innerHTML += row;
             });
-    
+
             // Show the details modal
             $('#detailsModal').modal('show');
           } else {
@@ -1302,10 +1257,10 @@
       try {
         // Reference to the foods collection
         const foodsCollectionRef = collection(firestore, 'foods');
-    
+
         // Query to find a document with the specified tag
         const querySnapshot = await getDocs(query(foodsCollectionRef, where('tag', '==', tag)));
-    
+
         let docRef;
         if (querySnapshot.empty) {
           // If no document with the specified tag exists, create a new document
@@ -1316,23 +1271,23 @@
           docRef = querySnapshot.docs[0].ref;
           console.log(`Existing document found with ID: ${docRef.id}`);
         }
-    
+
         // Reference to the items subcollection
         const itemsCollectionRef = collection(docRef, 'items');
-    
+
         // Add the new item to the items subcollection
         await addDoc(itemsCollectionRef, {
           dish: dish,
           price: parseFloat(price) // Ensure price is stored as a number
         });
-    
+
         console.log('Order item added successfully');
         // Refresh the table to reflect the changes
         displayOrderListing();
       } catch (error) {
         console.error('Error adding order item:', error);
       }
-    };    
+    };
 
     const updateEmployee = async (employeeId, name, middleName, lastName, role, contact, address, email, password) => {
       try {
@@ -1380,6 +1335,19 @@
       try {
         // Delete employee document from Firestore
         await deleteDoc(doc(firestore, 'purchases', purchaseOrderId));
+        console.log('Purchase Order deleted successfully');
+
+        // Refresh the table to reflect the changes
+        displayEmployees();
+      } catch (error) {
+        console.error("Error deleting Purchase Order:", error);
+      }
+    };
+
+    const deleteOrderDetails = async (orderListingId, orderDetailsId) => {
+      try {
+        // Delete employee document from Firestore
+        await deleteDoc(doc(firestore, 'foods', orderListingId, 'items', orderDetailsId));
         console.log('Purchase Order deleted successfully');
 
         // Refresh the table to reflect the changes
@@ -1460,7 +1428,7 @@
         await addPurchaseOrder(datetime, amount, comment);
 
         // Close the modal
-        $('#addEmployeeModal').modal('hide');
+        $('#addPurchaseOrderModal').modal('hide');
 
         // Clear form fields
         document.getElementById('purchase-order-datetime').value = '';
