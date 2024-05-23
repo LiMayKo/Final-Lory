@@ -519,12 +519,24 @@
                     <input type="text" class="form-control" id="order-listing-id-view" readonly>
                   </div>
                   <div class="form-group">
+                    <label for="order-listing-id">Order Tag ID</label>
+                    <input type="text" class="form-control" id="order-listing-tag-id-view" readonly>
+                  </div>
+                  <div class="form-group">
                     <label for="order-listing-category">Category</label>
-                    <input type="text" class="form-control" id="order-listing-category-view" required>
+                    <select class="form-control" id="order-listing-category-view" readonly>
+                      <option value="main">Main</option>
+                      <option value="desserts">Desserts</option>
+                      <option value="sides">Sides</option>
+                      <option value="special">Special</option>
+                      <option value="small-orders">Small Orders</option>
+                      <option value="appetizers">Appetizers</option>
+                      <option value="beverages">Beverages</option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <label for="order-listing-name">Dish Name</label>
-                    <input type="text" class="form-control" id="order-listing-name-view" required>
+                    <input type="text" class="form-control" id="order-listing-name-view" readonly>
                   </div>
                   <div class="form-group">
                     <label for="order-listing-price">Price</label>
@@ -991,7 +1003,7 @@
                     <td>${item.dish}</td>
                     <td>${item.price}</td>
                     <td>
-                        <button type="button" class="btn btn-primary order-details-edit-btn">Edit</button> <!-- Added Edit button -->
+                        <button type="button" class="btn btn-primary order-details-edit-btn" data-order-tag-id="${doc.id}">Edit</button> <!-- Added Edit button -->
                         <button type="button" class="btn btn-danger order-details-delete-btn">Delete</button>
                     
                     </td>
@@ -1022,11 +1034,12 @@
           const editButtons = document.querySelectorAll('.order-details-edit-btn');
           editButtons.forEach((button) => {
             button.addEventListener('click', async () => {
+              const orderTagId = button.getAttribute('data-order-tag-id');
               const orderDetailId = button.parentElement.parentElement.id;
-              console.log('Clicked edit button for employee ID:', orderDetailId);
+              console.log('Clicked edit button for order detail ID:', orderDetailId);
 
               // Retrieve employee details and open edit modal
-              await openEditModal(doc.id, orderDetailId);
+              await openEditOrderDetailsModal(orderTagId, orderDetailId);
             });
           });
 
@@ -1208,6 +1221,47 @@
       }
     };
 
+    const openEditOrderDetailsModal = async (orderDetailTagId, orderDetailId) => {
+      try {
+        const docRef = doc(firestore, 'foods', orderDetailTagId, 'items', orderDetailId);
+        const tagRef = doc(firestore, 'foods', orderDetailTagId);
+    
+        const docSnapshot = await getDoc(docRef);
+        const tagSnapshot = await getDoc(tagRef);
+    
+        // Check if the orderDetail document exists
+        if (!docSnapshot.exists()) {
+          console.error("Order detail document not found:", orderDetailId);
+          return;
+        }
+    
+        // Check if the tag document exists
+        if (!tagSnapshot.exists()) {
+          console.error("Tag document not found:", orderDetailTagId);
+          return;
+        }
+    
+        const orderDetail = docSnapshot.data();
+        const tagDetail = tagSnapshot.data();
+    
+        // Log the retrieved data
+        console.log("Order Detail:", orderDetail);
+        console.log("Tag Detail:", tagDetail);
+    
+        // Populate the modal body with order details
+        document.getElementById('order-listing-id-view').value = orderDetailId; // Set the Firestore document ID in the modal
+        document.getElementById('order-listing-tag-id-view').value = orderDetailTagId;
+        document.getElementById('order-listing-category-view').value = tagDetail.tag; 
+        document.getElementById('order-listing-name-view').value = orderDetail.dish;
+        document.getElementById('order-listing-price-view').value = orderDetail.price;
+    
+        // Display the modal
+        $('#orderListingDetailsModal').modal('show');
+      } catch (error) {
+        console.error("Error getting order listing details:", error);
+      }
+    };
+
 
     // Function to add a new employee to Firestore
     const addEmployee = async (name, middleName, lastName, role, contact, address, email, password) => {
@@ -1314,6 +1368,27 @@
         }
       } catch (error) {
         console.error('Error updating employee:', error);
+      }
+    };
+
+    const updateOrderListing = async (tagId, orderListingId, price) => {
+      try {
+        const orderListingRef = doc(firestore, 'foods', tagId, 'items', orderListingId);
+        const orderListingSnapshot = await getDoc(orderListingRef);
+
+        // Check if the document exists before updating
+        if (orderListingSnapshot.exists()) {
+          // Update employee document in Firestore
+          await updateDoc(orderListingRef, {
+            price: price,
+          });
+
+          console.log('Order Listing updated successfully:', orderListingId);
+        } else {
+          console.error('Order Listing document not found:', orderListingId);
+        }
+      } catch (error) {
+        console.error('Error updating Order Listing:', error);
       }
     };
 
@@ -1481,6 +1556,26 @@
 
         // Refresh the table to reflect the changes
         displayEmployees(); // Call the displayEmployees function
+      } catch (error) {
+        console.error('Error saving employee details:', error);
+      }
+    });
+
+    document.getElementById('save-edit-order-listing-btn-view').addEventListener('click', async () => {
+      try {
+        // Retrieve input values from the modal
+        const tagId = document.getElementById('order-listing-tag-id-view').value.trim();
+        const orderListingId = document.getElementById('order-listing-id-view').value.trim();
+        const price = document.getElementById('order-listing-price-view').value.trim();
+
+        // Update employee details in Firestore, including password
+        await updateOrderListing(tagId, orderListingId, price);
+
+        // Close the modal
+        $('#employeeDetailsModal').modal('hide');
+
+        // Refresh the table to reflect the changes
+        displayOrderListing(); // Call the displayEmployees function
       } catch (error) {
         console.error('Error saving employee details:', error);
       }
