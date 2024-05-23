@@ -82,13 +82,6 @@ function resetDetailsList(){
     `;
 }
 function pendingButtonAdjust(){
-    document.getElementById("total-list").innerHTML = `
-        <div class="col-12">
-            <h6><b>Order Total</b></h6>
-        </div>
-        <div class="col-12">
-            <h6 id="order-total">0</h6>
-        </div>`;
     document.querySelector('.buttons-list').innerHTML = `
         <button class="btn btn-c btn-outline-danger cancel">
             X
@@ -96,19 +89,6 @@ function pendingButtonAdjust(){
     `;
 }
 function billOutButtonAdjust(){
-    document.getElementById("total-list").innerHTML = `
-        <div class="col-6">
-            <h6><b>Discount</b></h6>
-        </div>
-        <div class="col-6">
-            <input type="number" id="discount-input" class="form-control" min="0">
-        </div>
-        <div class="col-12">
-            <h6><b>Order Total</b></h6>
-        </div>
-        <div class="col-12">
-            <h6 id="order-total">0</h6>
-        </div>`;
     document.querySelector('.buttons-list').innerHTML = `
         <button class="btn btn-c btn-outline-success" id="paymentSuccessBtn">
             <img src="images/check.svg" alt="Check" height="100%" width="100%">
@@ -116,13 +96,6 @@ function billOutButtonAdjust(){
     `;
 }
 function completedButtonAdjust(){
-    document.getElementById("total-list").innerHTML = `
-        <div class="col-12">
-            <h6><b>Order Total</b></h6>
-        </div>
-        <div class="col-12">
-            <h6 id="order-total">0</h6>
-        </div>`;
     document.querySelector('.buttons-list').innerHTML = `
     `;
 }
@@ -135,38 +108,9 @@ async function paymentSuccess(docId) {
         if (originalDocSnapshot.exists) {
             const originalData = originalDocSnapshot.data();
             const status = originalData.status;
-            const discountInputValue = document.getElementById('discount-input').value;
-            const discountInput = parseInt(discountInputValue);
 
-            if (!originalData.discount) {
-                // No discount field, handle the first button click to update the discounted price
-                if (!isNaN(discountInput) && discountInput > 0) {
-                    const originalTotal = originalData['total'];
-                    const newTotal = originalTotal - discountInput;
-
-                    // Update the discount and new total in the document
-                    await originalDocRef.update({ discount: discountInput, 'total': newTotal });
-                    console.log(`Discount applied: ${discountInput}. New total: ${newTotal}`);
-                    alert("Discount applied successfully. Click again to complete payment.");
-                } else {
-                    console.log("Invalid discount value.");
-                }
-            } else if (originalData.discount !== discountInput) {
-                // Discount exists and has changed
-                if (!isNaN(discountInput) && discountInput > 0) {
-                    const oldDiscount = originalData.discount;
-                    const originalTotal = originalData['total'] + oldDiscount;
-                    const newTotal = originalTotal - discountInput;
-
-                    // Update the discount and new total in the document
-                    await originalDocRef.update({ discount: discountInput, 'total': newTotal });
-                    console.log(`Discount updated: ${discountInput}. New total: ${newTotal}`);
-                    alert("Discount updated successfully. Click again to complete payment.");
-                } else {
-                    console.log("Invalid discount value.");
-                }
-            } else if (status === "bill-out") {
-                // Handle the payment and transfer process if the discount field already exists and discount input is the same
+            if (status === "bill-out") {
+                // Update status to paid
                 await originalDocRef.update({ status: "paid" });
                 console.log("Payment successful. Status updated to paid.");
 
@@ -174,34 +118,16 @@ async function paymentSuccess(docId) {
                 const salesCollectionRef = db.collection("sales").doc(docId);
                 await salesCollectionRef.set(originalData);
 
-                // Move "details" subcollection
+                // Reference the "details" subcollection directly
                 const detailsCollectionRef = originalDocRef.collection("details");
                 const detailsSnapshot = await detailsCollectionRef.get();
                 detailsSnapshot.forEach(async (doc) => {
                     await salesCollectionRef.collection("details").doc(doc.id).set(doc.data());
                 });
 
-                // Move "checklist" subcollection
-                const checklistCollectionRef = originalDocRef.collection("checklist");
-                const checklistSnapshot = await checklistCollectionRef.get();
-                checklistSnapshot.forEach(async (doc) => {
-                    await salesCollectionRef.collection("checklist").doc(doc.id).set(doc.data());
-                });
-
-                // Delete documents in "details" subcollection
-                await Promise.all(detailsSnapshot.docs.map(async (doc) => {
-                    await detailsCollectionRef.doc(doc.id).delete();
-                }));
-
-                // Delete documents in "checklist" subcollection
-                await Promise.all(checklistSnapshot.docs.map(async (doc) => {
-                    await checklistCollectionRef.doc(doc.id).delete();
-                }));
-
                 // Delete the original document
                 await originalDocRef.delete();
-                console.log("Document and its subcollections removed from original collection.");
-                location.reload();
+                console.log("Document and its details subcollection removed from original collection.");
             } else {
                 console.log("Payment failed. Status is not bill-out.");
             }
@@ -213,11 +139,50 @@ async function paymentSuccess(docId) {
     }
 }
 
+
+
 function paymentButtonUpdate(docId){
     const paymentSuccessBtn = document.getElementById("paymentSuccessBtn");
     paymentSuccessBtn.setAttribute("onclick", "paymentSuccess('"+docId+"')");
 }
-
+// 
+// Verification Button
+// pending();
+// function verification(){
+//     documentId = "";
+//     resetDetailsList();
+//     // Show the content when the item is clicked
+//     document.querySelectorAll('.dashboard-button').forEach(button => {
+//         button.classList.add('btn-outline-dark');
+//         button.classList.remove('btn-success');
+//         button.classList.remove('disabled');
+//     });
+//     document.querySelector(".verification").classList.remove("btn-outline-dark");
+//     document.querySelector(".verification").classList.add("disabled");
+//     document.querySelector(".verification").classList.add("btn-success");
+//     document.getElementById('list').innerHTML = "";
+//     db.collection("orders").doc("BawoijACJlbVRi8sHQqI").collection("queue").orderBy("date", "desc").get().then((itemSnapshot) => {
+//         itemSnapshot.forEach((itemDoc) => {
+//             const itemData = itemDoc.data();
+//             const tableid = itemData.tableid;
+//             const customerid = itemData.customerid;
+//             const status = itemData.status;
+//             const total = itemData.total;
+//             const date = itemData.date;
+            
+//             // Construct HTML for each row
+//             document.getElementById('list').innerHTML += `
+//                 <tr id="verification-list">
+//                     <td>${tableid}</td>
+//                     <td>${customerid}</td>
+//                     <td>${total}</td>
+//                     <td>${status}</td>
+//                     <td><button class="btn btn-sm btn-success list-button" id="${itemDoc.id}" onclick="getDetails('${itemDoc.id}')">Confirm</button></td>
+//                 </tr>
+//             `;
+//         });
+//     });
+// }
 // Pending Button
 pendingButtonAdjust();  
 fetchData();
@@ -257,12 +222,90 @@ async function fetchData() {
                     <td>${customerid}</td>
                     <td>${total}</td>
                     <td>${status}</td>
-                    <td><button class="btn btn-sm btn-success list-button" id="${itemDoc.id}" onclick="getDetails('${itemDoc.id}', 'dashboard');${billOutEvent}">View</button></td>
+                    <td><button class="btn btn-sm btn-success list-button" id="${itemDoc.id}" onclick="getDetails('${itemDoc.id}', 'dashboard');${billOutEvent}">Confirm</button></td>
                 </tr>
             `;
         });
     });
 }
+
+// function pending(){
+//     documentId = "";
+//     resetDetailsList();
+//     pendingButtonAdjust();
+//     document.querySelectorAll('.dashboard-button').forEach(button => {
+//         button.classList.add('btn-outline-dark');
+//         button.classList.remove('btn-success');
+//         button.classList.remove('disabled');
+//     });
+//     document.querySelector(".pending").classList.remove("btn-outline-dark");
+//     document.querySelector(".pending").classList.add("disabled");
+//     document.querySelector(".pending").classList.add("btn-success");
+//     document.getElementById('list').innerHTML = "";
+//     db.collection("orders").doc("d716BHinTx1rHwR96KOV").collection("queue").orderBy("date", "desc").get().then((itemSnapshot) => {
+//         itemSnapshot.forEach((itemDoc) => {
+//             const itemData = itemDoc.data();
+//             const tableid = itemData.tableid;
+//             const customerid = itemData.customerid;
+//             const status = itemData.status;
+//             const total = itemData.total;
+//             const date = itemData.date.toDate();
+//             const timeString = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+//             // Construct HTML for each row
+//             document.getElementById('list').innerHTML += `
+//                 <tr id="pending-list">
+//                     <td>${tableid}</td>
+//                     <td>${timeString}</td>
+//                     <td>${customerid}</td>
+//                     <td>${total}</td>
+//                     <td>${status}</td>
+//                     <td><button class="btn btn-sm btn-success list-button" id="${itemDoc.id}" onclick="getDetails('${itemDoc.id}', 'dashboard')">Confirm</button></td>
+//                 </tr>
+//             `;
+//         });
+//     });
+// }
+
+// // Completed Button
+// function completed(){
+//     documentId = "";
+//     resetDetailsList();
+//     completedButtonAdjust();
+//     document.querySelectorAll('.dashboard-button').forEach(button => {
+//         button.classList.add('btn-outline-dark');
+//         button.classList.remove('btn-success');
+//         button.classList.remove('disabled');
+//     });
+//     document.querySelector(".completed").classList.remove("btn-outline-dark");
+//     document.querySelector(".completed").classList.add("btn-success");
+//     document.querySelector(".completed").classList.add("disabled");
+//     document.getElementById('list').innerHTML = "";
+//     db.collection("orders").doc("QiQgHzK5ejJONcqySnGg").collection("queue").orderBy("date", "desc").get().then((itemSnapshot) => {
+//         itemSnapshot.forEach((itemDoc) => {
+//             const itemData = itemDoc.data();
+//             const tableid = itemData.tableid;
+//             const status = itemData.status;
+//             const total = itemData.total;
+//             const customerid = itemData.customerid;
+//             const date = itemData.date.toDate();
+//             const timeString = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+//             // Construct HTML for each row
+
+//             document.getElementById('list').innerHTML += `
+//                 <tr id="pending-list" class="${itemDoc.id}">
+//                     <td>${tableid}</td>
+//                     <td>${timeString}</td>
+//                     <td>${customerid}</td>
+//                     <td>${total}</td>
+//                     <td>${status}</td>
+//                     <td><button class="btn btn-sm btn-success list-button" id="${itemDoc.id}" onclick="getDetails('${itemDoc.id}', 'dashboard')">Confirm</button></td>
+//                 </tr>
+//             `;
+//         });
+//     });
+// }
 
 function getDetails(docId, operation){
     let labelId = "";
@@ -270,7 +313,6 @@ function getDetails(docId, operation){
     const verifyButton = document.querySelector('.verify');
     const cancelButton = document.querySelector('.cancel');
     let total = 0;
-    let discount = 0;
 
     if (operation == 'sales'){
         sales = true;
@@ -290,7 +332,21 @@ function getDetails(docId, operation){
                 <div class="col-3 list-item p-0"><b>Total</b></div>
             </div>
         `;
-        
+        // if(!verifyButton){
+        //     if (cancelButton) {
+        //         cancelButton.setAttribute('onclick', `cancel('${docId}', 'pending')`);
+        //         labelId = "d716BHinTx1rHwR96KOV";
+        //     }
+        // } else {
+        //     if (!cancelButton) {
+        //         verifyButton.setAttribute('onclick', `verify('${docId}', 'completed')`);
+        //         labelId = "QiQgHzK5ejJONcqySnGg";
+        //     }else{
+        //         verifyButton.setAttribute('onclick', `verify('${docId}', 'verification')`);
+        //         cancelButton.setAttribute('onclick', `cancel('${docId}', 'verification')`);
+        //         labelId = "BawoijACJlbVRi8sHQqI";
+        //     }
+        // }
         labelId = "d716BHinTx1rHwR96KOV";
     }
     
@@ -309,12 +365,11 @@ function getDetails(docId, operation){
         // For changing ID
         const customerIDElement = document.querySelector(".customer-id h6 b");
         if(sales){
+            // console.log("Sales = True");
             // If sales mode, fetch the customer ID from the sales collection
             db.collection("sales").doc(labelId).get().then((doc) => {
                 if (doc.exists) {
                     const customerID = doc.data().tableId;
-                    total = doc.data().total;
-                    discount = doc.data().discount;
                     customerIDElement.textContent = `Table Number - ${customerID}`;
                 } else {
                     console.log("No such document!");
@@ -335,22 +390,9 @@ function getDetails(docId, operation){
                         <div class="col-3 list-item p-0 mt-2 total">${detailData.total}</div>
                     </div>
                 `;
-                // total += parseFloat(detailData.total);
+                total += parseFloat(detailData.total);
                 // console.log(total)
-                document.getElementById("sales-list").innerHTML = `
-                    <div class="col-6">
-                        <h6><b>Discount</b></h6>
-                    </div>
-                    <div class="col-6">
-                        <h6 id="discount-total">${discount}</h6>
-                    </div>
-                    <div class="col-12">
-                        <h6><b>Order Total</b></h6>
-                    </div>
-                    <div class="col-12">
-                        <h6 id="order-total">${total}</h6>
-                    </div>
-                `;
+                document.getElementById("order-total-sales").innerHTML = total;
                 });
             }).catch((error) => {
                 console.log("Error getting details:", error);
@@ -360,8 +402,6 @@ function getDetails(docId, operation){
             db.collection("orders").doc(labelId).collection("queue").doc(docId).get().then((doc) => {
                 if (doc.exists) {
                     const tableId = doc.data().tableid;
-                    document.getElementById("order-total").innerText = doc.data().total;
-                    document.getElementById("discount-input").value = doc.data().discount;
                     customerIDElement.textContent = `Table Number - ${tableId}`;
                 } else {
                     console.log("No such document!");
@@ -388,7 +428,7 @@ function getDetails(docId, operation){
                     `;
                     total += parseFloat(detailData.total);
                     console.log("Order Total: ",total);
-                    // document.getElementById("order-total").innerHTML = total;
+                    document.getElementById("order-total").innerHTML = total;
                 });
             }).catch((error) => {
                 console.log("Error getting details:", error);
@@ -406,6 +446,112 @@ function getDetails(docId, operation){
         documentId = "";
     }
 }
+
+// function toggleStatus(docId) {
+//     const docRef = db.collection("orders").doc("QiQgHzK5ejJONcqySnGg").collection("queue").doc(docId);
+
+//     // Get the current status of the document
+//     docRef.get().then((docSnapshot) => {
+//         if (docSnapshot.exists) {
+//             const currentStatus = docSnapshot.data().status;
+//             const newStatus = currentStatus === "completed" ? "paid" : "completed";
+
+//             // Update the status field with the new status
+//             docRef.update({ status: newStatus }).then(() => {
+//                 console.log("Status updated successfully.");
+//                 document.querySelector(`.${docId}`).cells[4].textContent = newStatus;
+//             }).catch((error) => {
+//                 console.error("Error updating status:", error);
+//             });
+//         } else {
+//             console.error("Document does not exist.");
+//         }
+//     }).catch((error) => {
+//         console.error("Error getting document:", error);
+//     });
+// }
+
+
+// function verify(docId, method) {
+//     if(method == "verification"){
+//         verifytransferDocument(docId);
+//     } else {
+//         toggleStatus(docId);
+//     }
+// }
+
+// function verifytransferDocument(docId) {
+//     const sourceDocRef = db.collection('orders').doc('BawoijACJlbVRi8sHQqI').collection('queue').doc(docId);
+//     const destDocRef = db.collection('orders').doc('d716BHinTx1rHwR96KOV').collection('queue').doc(docId);
+
+//     // Get the source document and its subcollection
+//     sourceDocRef.get()
+//         .then((docSnapshot) => {
+//             if (docSnapshot.exists) {
+//                 const data = docSnapshot.data();
+//                 destDocRef.set(data)
+//                     .then(() => {
+//                         console.log('Document transferred successfully.');
+//                         verifytransferSubcollection(docId);
+//                     })
+//                     .catch((error) => {
+//                         console.error('Error transferring document:', error);
+//                     });
+//             } else {
+//                 console.error('Document does not exist in source collection.');
+//             }
+//         })
+//         .catch((error) => {
+//             console.error('Error getting document:', error);
+//         });
+// }
+// function verifytransferSubcollection(docId) {
+//     const sourceSubcollectionRef = db.collection('orders').doc('BawoijACJlbVRi8sHQqI').collection('queue').doc(docId).collection('details');
+//     const destSubcollectionRef = db.collection('orders').doc('d716BHinTx1rHwR96KOV').collection('queue').doc(docId).collection('details');
+
+//     // Get all documents in the source subcollection
+//     sourceSubcollectionRef.get()
+//         .then((querySnapshot) => {
+//             querySnapshot.forEach((doc) => {
+//                 const subDocData = doc.data();
+//                 destSubcollectionRef.doc(doc.id).set(subDocData)
+//                     .then(() => {
+//                         console.log('Subdocument transferred successfully.');
+//                         // Delete the source subcollection after all documents have been transferred
+//                         verifyremoveDocIdFromSource(docId);
+//                     })
+//                     .catch((error) => {
+//                         console.error('Error transferring subdocument:', error);
+//                     });
+//             });
+//         })
+//         .catch((error) => {
+//             console.error('Error getting subcollection documents:', error);
+//         });
+// }
+
+// function verifyremoveDocIdFromSource(docId) {
+//     const docRef = db.collection(`orders/BawoijACJlbVRi8sHQqI/queue`).doc(docId);
+
+//     // Delete the "details" collection
+//     docRef.collection('details').get().then(snapshot => {
+//         snapshot.forEach(doc => {
+//             doc.ref.delete();
+//         });
+//         console.log("Collection 'details' successfully deleted!");
+
+//         // Now delete the document itself
+//         docRef.delete().then(() => {
+//             alert("Document has been successfully verified.")
+//             location.reload();
+//             console.log("Document and its 'details' collection successfully deleted from the 'queue' subcollection!");
+//         }).catch(error => {
+//             console.error("Error removing document from the 'queue' subcollection: ", error);
+//         });
+//     }).catch(error => {
+//         console.error("Error deleting documents in 'details' collection: ", error);
+//     });
+// }
 
 function cancel(docId, label) {
     let labelId = "";
