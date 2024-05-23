@@ -96,12 +96,6 @@
               </div>
             </div>
           </li>
-          <li class="p-3 d-flex m-3 settings">
-            <img src="img/settings.png" alt="Food Icon" width="25%" height="25%">
-            <div class="text-center flex-grow-1 pt-2 pl-3">
-              <h6 class="nav-item" id="settings-nav">Settings</h6>
-            </div>
-          </li>
         </ul>
       </nav>
       <!-- Side Nav - END -->
@@ -355,12 +349,12 @@
             </div>
           </div>
           <!-- Modal for employee deletion confirmation -->
-          <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
-            aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+          <div class="modal fade" id="confirmDeletePurchaseOrderModal" tabindex="-1" role="dialog"
+            aria-labelledby="confirmDeletePurchaseOrderModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                  <h5 class="modal-title" id="confirmDeletePurchaseOrderModalLabel">Confirm Deletion</h5>
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -370,7 +364,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-                  <button type="button" class="btn btn-danger" id="confirm-delete-btn">Yes, delete</button>
+                  <button type="button" class="btn btn-danger" id="confirm-purchase-order-delete-btn">Yes, delete</button>
                 </div>
               </div>
             </div>
@@ -479,12 +473,12 @@
             </div>
           </div>
           <!-- Modal for employee deletion confirmation -->
-          <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
-            aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+          <div class="modal fade" id="confirmOrderListingDeleteModal" tabindex="-1" role="dialog"
+            aria-labelledby="confirmOrderListingDeleteModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                  <h5 class="modal-title" id="confirmOrderLisstingDeleteModalLabel">Confirm Deletion</h5>
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -494,7 +488,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-                  <button type="button" class="btn btn-danger" id="confirm-delete-btn">Yes, delete</button>
+                  <button type="button" class="btn btn-danger" id="confirm-order-listing-delete-btn">Yes, delete</button>
                 </div>
               </div>
             </div>
@@ -537,7 +531,7 @@
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="save-add-employee-btn-modal">Save</button>
+                <button type="button" class="btn btn-primary" id="save-add-order-listing-btn-modal">Save</button>
               </div>
             </div>
           </div>
@@ -567,7 +561,7 @@
                   </div>
                   <div class="form-group">
                     <label for="order-listing-name">Dish Name</label>
-                    <input type="text" class="form-control" id="order-listing-name-view">
+                    <input type="text" class="form-control" id="order-listing-name-view" required>
                   </div>
                   <div class="form-group">
                     <label for="order-listing-price">Price</label>
@@ -689,19 +683,6 @@
           </div>
         </div>
       </div>
-
-      <div class="settings-container col-7 d-none">
-        <h1>settings</h1>
-        <div class="list-group">
-          <a href="#" class="list-group-item list-group-item-action active">
-            Cras justo odio
-          </a>
-          <a href="#" class="list-group-item list-group-item-action">Dapibus ac facilisis in</a>
-          <a href="#" class="list-group-item list-group-item-action">Morbi leo risus</a>
-          <a href="#" class="list-group-item list-group-item-action">Porta ac consectetur ac</a>
-          <a href="#" class="list-group-item list-group-item-action disabled">Vestibulum at eros</a>
-        </div>
-      </div>
     </div>
   </div>
   </div>
@@ -724,9 +705,9 @@
     // Import Firebase authentication functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc , Timestamp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-    import { updateDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { updateDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js"
 
     const firebaseConfig = {
       apiKey: "AIzaSyDT4iaPdleCjt7K2AYVDfEaZOi6UqDHCDU",
@@ -996,12 +977,30 @@
                             <td>${purchases.amount}</td>
                             <td>${purchases.comment}</td>
                             <td>
-                                <button type="button" class="btn btn-danger delete-btn">Delete</button>
-
+                                <button type="button" class="btn btn-danger purchase-order-delete-btn">Delete</button>
                             </td>
                         </tr>
                     `;
           purchaseOrderTableBody.innerHTML += row;
+        });
+
+        const deleteButtons = document.querySelectorAll('.purchase-order-delete-btn');
+        deleteButtons.forEach((button) => {
+          button.addEventListener('click', async () => {
+            const purchaseOrderId = button.parentElement.parentElement.id;
+            console.log('Clicked delete button for employee ID:', purchaseOrderId);
+
+            // Show confirmation modal
+            $('#confirmDeletePurchaseOrderModal').modal('show');
+
+            // Attach event listener to confirm deletion
+            document.getElementById('confirm-purchase-order-delete-btn').addEventListener('click', async () => {
+              // Delete employee only if confirmed
+              await deletePurchaseOrder(purchaseOrderId);
+              // Close the confirmation modal
+              $('#confirmDeletePurchaseOrderModal').modal('hide');
+            });
+          });
         });
 
       } catch (error) {
@@ -1037,14 +1036,45 @@
                     <td>${item.dish}</td>
                     <td>${item.price}</td>
                     <td>
-                        <button type="button" class="btn btn-primary edit-btn">Edit</button> <!-- Added Edit button -->
-                        <button type="button" class="btn btn-danger delete-btn">Delete</button>
+                        <button type="button" class="btn btn-primary order-details-edit-btn">Edit</button> <!-- Added Edit button -->
+                        <button type="button" class="btn btn-danger order-details-delete-btn">Delete</button>
                     
                     </td>
                 </tr>
             `;
             orderListingTableBody.innerHTML += row;
-          })
+          });
+
+          const deleteButtons = document.querySelectorAll('.purchase-order-delete-btn');
+          deleteButtons.forEach((button) => {
+          button.addEventListener('click', async () => {
+            const orderDetailsId = button.parentElement.parentElement.id;
+            console.log('Clicked delete button for employee ID:', orderDetailsId);
+
+            // Show confirmation modal
+            $('#confirmOrderListingDeleteModal').modal('show');
+
+            // Attach event listener to confirm deletion
+            document.getElementById('confirm-order-listing-delete-btn').addEventListener('click', async () => {
+              // Delete employee only if confirmed
+              await deleteOrderDetails(purchaseOrderId);
+              // Close the confirmation modal
+              $('#confirmOrderListingDeleteModal').modal('hide');
+            });
+          });
+        });
+
+        const editButtons = document.querySelectorAll('.order-details-edit-btn');
+        editButtons.forEach((button) => {
+          button.addEventListener('click', async () => {
+            const orderDetailId = button.parentElement.parentElement.id;
+            console.log('Clicked edit button for employee ID:', orderDetailId);
+
+            // Retrieve employee details and open edit modal
+            await openEditModal(employeeId);
+          });
+        });
+          
         });
 
       } catch (error) {
@@ -1250,7 +1280,59 @@
       }
     };
 
+    const addPurchaseOrder = async (datetime, amount, comment) => {
+      try {
+        const timestamp = Timestamp.fromDate(new Date(datetime));
+        // Add employee to Firestore
+        await addDoc(collection(firestore, 'purchases'), {
+          datetime: timestamp,
+          amount: parseFloat(amount),
+          comment: comment
+        });
 
+        console.log('Purchase Order added successfully');
+        // Refresh the table to reflect the changes
+        displayPurchaseOrder();
+      } catch (error) {
+        console.error('Error adding purchase order:', error);
+      }
+    };
+
+    const addOrderListing = async (tag, dish, price) => {
+      try {
+        // Reference to the foods collection
+        const foodsCollectionRef = collection(firestore, 'foods');
+    
+        // Query to find a document with the specified tag
+        const querySnapshot = await getDocs(query(foodsCollectionRef, where('tag', '==', tag)));
+    
+        let docRef;
+        if (querySnapshot.empty) {
+          // If no document with the specified tag exists, create a new document
+          docRef = await addDoc(foodsCollectionRef, { tag });
+          console.log(`New document created with ID: ${docRef.id}`);
+        } else {
+          // If a document with the specified tag exists, use the first matching document
+          docRef = querySnapshot.docs[0].ref;
+          console.log(`Existing document found with ID: ${docRef.id}`);
+        }
+    
+        // Reference to the items subcollection
+        const itemsCollectionRef = collection(docRef, 'items');
+    
+        // Add the new item to the items subcollection
+        await addDoc(itemsCollectionRef, {
+          dish: dish,
+          price: parseFloat(price) // Ensure price is stored as a number
+        });
+    
+        console.log('Order item added successfully');
+        // Refresh the table to reflect the changes
+        displayOrderListing();
+      } catch (error) {
+        console.error('Error adding order item:', error);
+      }
+    };    
 
     const updateEmployee = async (employeeId, name, middleName, lastName, role, contact, address, email, password) => {
       try {
@@ -1291,6 +1373,19 @@
         displayEmployees();
       } catch (error) {
         console.error("Error deleting employee:", error);
+      }
+    };
+
+    const deletePurchaseOrder = async (purchaseOrderId) => {
+      try {
+        // Delete employee document from Firestore
+        await deleteDoc(doc(firestore, 'purchases', purchaseOrderId));
+        console.log('Purchase Order deleted successfully');
+
+        // Refresh the table to reflect the changes
+        displayEmployees();
+      } catch (error) {
+        console.error("Error deleting Purchase Order:", error);
       }
     };
 
@@ -1352,6 +1447,48 @@
         document.getElementById('employee-password').value = ''; // Clear password input
       } catch (error) {
         console.error('Error saving employee:', error);
+      }
+    });
+
+    document.getElementById('save-add-purchase-order-btn-modal').addEventListener('click', async () => {
+      try {
+        const datetime = document.getElementById('purchase-order-datetime').value;
+        const amount = document.getElementById('purchase-order-amount').value.trim();
+        const comment = document.getElementById('purchase-order-comment').value.trim();
+
+        // Add new employee to Firestore with password
+        await addPurchaseOrder(datetime, amount, comment);
+
+        // Close the modal
+        $('#addEmployeeModal').modal('hide');
+
+        // Clear form fields
+        document.getElementById('purchase-order-datetime').value = '';
+        document.getElementById('purchase-order-amount').value = '';
+        document.getElementById('purchase-order-comment').value = '';
+      } catch (error) {
+        console.error('Error saving employee:', error);
+      }
+    });
+
+    document.getElementById('save-add-order-listing-btn-modal').addEventListener('click', async () => {
+      try {
+        const tag = document.getElementById('order-listing-category').value;
+        const name = document.getElementById('order-listing-name').value.trim();
+        const price = document.getElementById('order-listing-price').value.trim();
+
+        // Add new employee to Firestore with password
+        await addOrderListing(tag, name, price);
+
+        // Close the modal
+        $('#addOrderListingModal').modal('hide');
+
+        // Clear form fields
+        document.getElementById('order-listing-category').value = '';
+        document.getElementById('order-listing-name').value = '';
+        document.getElementById('order-listing-price').value = '';
+      } catch (error) {
+        console.error('Error saving order listing:', error);
       }
     });
 
