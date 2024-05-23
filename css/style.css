@@ -1,7 +1,5 @@
     body {
-      /* background: linear-gradient(to right, #9dc896, #30ab97); */
-      background-color: #ff5555 !important;
-      color: white;
+      background: linear-gradient(to right, #9dc896, #30ab97);
       overflow: hidden; /* Prevent page from being scrollable */
     }
     .carousel-item img {
@@ -27,4 +25,3 @@
     .login-section {
       height: 100vh;
       overflow-y: auto;
-    }

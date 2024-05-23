@@ -11,22 +11,25 @@ document.addEventListener('DOMContentLoaded', function() {
         showAddEmployeeScreen();
     });
 
-    document.getElementById('purchase-order-dropdown').addEventListener('click', function() {
-        showAddPurchaseOrderScreen();
-    })
-
-    document.getElementById('order-listing-dropdown').addEventListener('click', function() {
-        showAddOrderListingScreen();
-    })
-
-    document.getElementById('purchase-report-dropdown').addEventListener('click', function() {
-        // Show the reports content
-        showPurchaseReports();
+    document.getElementById('product-dropdown').addEventListener('click', function() {
+        // Show a blank screen or hide the add employee screen
+        // You can add functionality here as needed
+        showAddProductScreen();
     });
 
-    document.getElementById('sales-report-dropdown').addEventListener('click', function() {
+    document.getElementById('transactions-nav').addEventListener('click', function() {
+        // Show the transactions content
+        showTransactions();
+    });
+
+    document.getElementById('notifications-nav').addEventListener('click', function() {
+        // Show the notifications content
+        showNotifications();
+    });
+
+    document.getElementById('reports-nav').addEventListener('click', function() {
         // Show the reports content
-        showSalesReports();
+        showReports();
     });
 
     document.getElementById('settings-nav').addEventListener('click', function() {
@@ -36,66 +39,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to show the dashboard content
     function showDashboard() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
             content.classList.add('d-none');
         });
         document.querySelector('.dashboard-content').classList.remove('d-none');
     }
 
-    function hideAllContainers() {
-        document.querySelectorAll('.dashboard-content, .data-container, .purchase-order-container, .order-listing-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container')
-            .forEach(function(content) {
-                content.classList.add('d-none');
-            });
-    }
-
     // Function to show the add employee screen
     function showAddEmployeeScreen() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
             content.classList.add('d-none');
         });
         document.querySelector('.data-container').classList.remove('d-none');
     }
 
-    function showAddPurchaseOrderScreen() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
+        // Function to show the add employee screen
+    function showAddProductScreen() {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
             content.classList.add('d-none');
         });
-        document.querySelector('.purchase-order-container').classList.remove('d-none');
+        document.querySelector('.product-container').classList.remove('d-none');
     }
 
-    function showAddOrderListingScreen() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
+    // Function to show the transactions content
+    function showTransactions() {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
             content.classList.add('d-none');
         });
-        document.querySelector('.order-listing-container').classList.remove('d-none');
+        document.querySelector('.transactions-container').classList.remove('d-none');
+    }
+
+    // Function to show the notifications content
+    function showNotifications() {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
+            content.classList.add('d-none');
+        });
+        document.querySelector('.notifications-container').classList.remove('d-none');
     }
 
     // Function to show the reports content
-    function showPurchaseReports() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
+    function showReports() {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
             content.classList.add('d-none');
         });
-        document.querySelector('.purchase-report-container').classList.remove('d-none');
-    }
-
-    function showSalesReports() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
-            content.classList.add('d-none');
-        });
-        document.querySelector('.sales-report-container').classList.remove('d-none');
+        document.querySelector('.reports-container').classList.remove('d-none');
     }
 
     // Function to show the settings content
     function showSettings() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
+        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .transactions-container, .notifications-container, .reports-container, .settings-container').forEach(function(content) {
             content.classList.add('d-none');
         });
         document.querySelector('.settings-container').classList.remove('d-none');

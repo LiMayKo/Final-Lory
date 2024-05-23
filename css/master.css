@@ -7,18 +7,18 @@
 body{
     font-family: "Manrope", sans-serif;
     font-style: normal;
-    font-weight: 500;
+    font-weight: 500; 
     overflow-y: hidden;
 }
 /* Fonts - End */
 div.profile-info{
-    background-color: #ff5555 !important;
+    background-image: linear-gradient(180deg, #2cc4ab, #1d9b87, #1a8092);
 }
 div.logout-container{
-    background-color: #ff5555 !important;
+    background-image: linear-gradient(90deg, #30ab97 23%, #1b8b70);
 }
 nav.side-navigation {
-    background-color: #ff5555 !important;
+    background-image: linear-gradient(180deg, #2cc4ab, #1d9b87, #1a8092);
     height: 90vh; /* Set height to 75% of viewport height */
 }
 li{
@@ -35,7 +35,7 @@ li{
 }
 td.table-item {
     width: 250px;
-    background-color: #ff5555 !important;
+    background-image: radial-gradient(circle at 50% 50%, #9dc896, #30ab97);
     border: 5px solid #fff; /* Add border for clarity */
     background-color: #fff; /* Add background color for contrast */
     white-space: nowrap; /* Prevent text from wrapping */
@@ -55,18 +55,18 @@ img.menu-item{
     font-weight: 700;
 }
 .btn-active{
-    background-color: #ff5555 !important;
+    background-image: linear-gradient(180deg, #2cc4ab, #1d9b87, #1a8092) !important;
 }
 .btn-custom:hover{
     border-color: #000;
-    background-color: #ff5555 !important;
+    background-image: radial-gradient(circle at 50% 50%, #9dc896, #30ab97);
 }
 .pills tr {
     border-color: transparent; /* Set border color to transparent */
 }
 /* Order List */
 div.orderlist-container, div.salesdetails-container, div.detailslist-container {
-    background-color: #ff5555 !important;
+    background-image: linear-gradient(180deg, #2cc4ab, #1d9b87, #1a8092);
     height: 90vh; /* Set height to 75% of viewport height */
 }
 div.order-list, div.salesdetails-list, div.details-list{
