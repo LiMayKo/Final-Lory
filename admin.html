@@ -652,7 +652,7 @@
                 </table>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
               </div>
             </div>
           </div>
@@ -1004,7 +1004,7 @@
                     <td>${item.price}</td>
                     <td>
                         <button type="button" class="btn btn-primary order-details-edit-btn" data-order-tag-id="${doc.id}">Edit</button> <!-- Added Edit button -->
-                        <button type="button" class="btn btn-danger order-details-delete-btn">Delete</button>
+                        <button type="button" class="btn btn-danger order-details-delete-btn" data-order-tag-id="${doc.id}">Delete</button>
                     
                     </td>
                 </tr>
@@ -1015,8 +1015,9 @@
           const deleteButtons = document.querySelectorAll('.order-details-delete-btn');
           deleteButtons.forEach((button) => {
             button.addEventListener('click', async () => {
-              const orderDetailsId = button.parentElement.parentElement.id;
-              console.log('Clicked delete button for employee ID:', orderDetailsId);
+              const orderTagId = button.getAttribute('data-order-tag-id');
+              const orderDetailId = button.parentElement.parentElement.id;
+              console.log('Clicked delete button for employee ID:', orderDetailId);
 
               // Show confirmation modal
               $('#confirmOrderListingDeleteModal').modal('show');
@@ -1024,7 +1025,7 @@
               // Attach event listener to confirm deletion
               document.getElementById('confirm-order-listing-delete-btn').addEventListener('click', async () => {
                 // Delete employee only if confirmed
-                await deleteOrderDetails(doc.id, orderDetailsId);
+                await deleteOrderDetails(orderTagId, orderDetailId);
                 // Close the confirmation modal
                 $('#confirmOrderListingDeleteModal').modal('hide');
               });
@@ -1422,11 +1423,13 @@
     const deleteOrderDetails = async (orderListingId, orderDetailsId) => {
       try {
         // Delete employee document from Firestore
+        console.log(orderListingId);
+        console.log(orderDetailsId);
         await deleteDoc(doc(firestore, 'foods', orderListingId, 'items', orderDetailsId));
         console.log('Purchase Order deleted successfully');
 
         // Refresh the table to reflect the changes
-        displayEmployees();
+        displayOrderListing();
       } catch (error) {
         console.error("Error deleting Purchase Order:", error);
       }
