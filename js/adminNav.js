@@ -29,11 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showSalesReports();
     });
 
-    document.getElementById('settings-nav').addEventListener('click', function() {
-        // Show the settings content
-        showSettings();
-    });
-
     // Function to show the dashboard content
     function showDashboard() {
         hideAllContainers();
@@ -90,14 +85,5 @@ document.addEventListener('DOMContentLoaded', function() {
             content.classList.add('d-none');
         });
         document.querySelector('.sales-report-container').classList.remove('d-none');
-    }
-
-    // Function to show the settings content
-    function showSettings() {
-        hideAllContainers();
-        document.querySelectorAll('.dashboard-content, .data-container, .product-container, .purchase-report-container, .sales-report-container, .settings-container').forEach(function(content) {
-            content.classList.add('d-none');
-        });
-        document.querySelector('.settings-container').classList.remove('d-none');
     }
 });
